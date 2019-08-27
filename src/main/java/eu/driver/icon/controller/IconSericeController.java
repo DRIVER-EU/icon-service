@@ -64,6 +64,7 @@ public class IconSericeController implements ResourceProcessor<RepositoryLinksRe
 		}
 		String key = path;
 		if (size != null) {
+			size = size.toLowerCase();
 			key += "/" + size;
 		}
 		
