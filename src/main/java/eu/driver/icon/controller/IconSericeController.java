@@ -107,7 +107,6 @@ public class IconSericeController implements ResourceProcessor<RepositoryLinksRe
 			try {
 				File file = new File(iconPath);
     			mapIcon = ImageIO.read(file);
-    			iconResult = Files.readAllBytes(file.toPath());
     			
 				if (size != null) {
 		    		// resize the image
@@ -123,12 +122,26 @@ public class IconSericeController implements ResourceProcessor<RepositoryLinksRe
 							outputStream.close();
 						} catch (Exception ce) { log.warn("stream not closed"); }
 		    		} else {
-		    			IconMap.getInstance().addIcon(key, mapIcon);
+		    			BufferedImage resized = resizeImage(mapIcon, 32, 32);
+		    			IconMap.getInstance().addIcon(key, resized);
+		    			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+						ImageIO.write(resized, "png", outputStream);
+						outputStream.flush();
+						iconResult = outputStream.toByteArray();
+						try {
+							outputStream.close();
+						} catch (Exception ce) { log.warn("stream not closed"); }
 		    		}
 		    	} else {
-		    		iconResult = Files.readAllBytes(file.toPath());
-	    			mapIcon = ImageIO.read(file);
-	    			IconMap.getInstance().addIcon(key, mapIcon);
+		    		BufferedImage resized = resizeImage(mapIcon, 32, 32);
+	    			IconMap.getInstance().addIcon(key, resized);
+	    			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+					ImageIO.write(resized, "png", outputStream);
+					outputStream.flush();
+					iconResult = outputStream.toByteArray();
+					try {
+						outputStream.close();
+					} catch (Exception ce) { log.warn("stream not closed"); }
 		    	}
 			} catch (Exception e) {
 				log.error("Error loading file and storing to icon map!", e);
@@ -164,7 +177,18 @@ public class IconSericeController implements ResourceProcessor<RepositoryLinksRe
 		return new ResponseEntity<String>(fileName, HttpStatus.OK);
 		
 	}
-	//public  uploadIcon(@QueryParam("path") String path, @QueryParam("size") String size) {
+	
+	@ApiOperation(value = "resetIconMap", nickname = "resetIconMap")
+	@RequestMapping(value = "/TBIconService/resetIconMap", method = RequestMethod.GET)
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Success", response = Boolean.class),
+			})
+	public ResponseEntity<Boolean> resetIconMap() {
+		
+		IconMap.getInstance().clearMap();
+		
+		return new ResponseEntity<Boolean>(true, HttpStatus.OK);
+	}
 	
 	private BufferedImage resizeImage(BufferedImage originalImage, int width, int height) {
 		BufferedImage resizedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
