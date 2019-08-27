@@ -20,6 +20,7 @@ import javax.imageio.ImageIO;
 import javax.ws.rs.QueryParam;
 
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.RepositoryLinksResource;
 import org.springframework.hateoas.ResourceProcessor;
 import org.springframework.http.CacheControl;
@@ -29,7 +30,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import eu.driver.icon.controller.util.IconMap;
 
@@ -37,6 +41,9 @@ import eu.driver.icon.controller.util.IconMap;
 public class IconSericeController implements ResourceProcessor<RepositoryLinksResource>  {
 	
 	private Logger log = Logger.getLogger(this.getClass());
+	
+	@Autowired
+    private FileStorageService fileStorageService;
 	
 	@Override
 	public RepositoryLinksResource process(RepositoryLinksResource resource) {
@@ -137,6 +144,27 @@ public class IconSericeController implements ResourceProcessor<RepositoryLinksRe
 		log.info("getIcon -->");
 		return new ResponseEntity<byte[]>("".getBytes(), HttpStatus.INTERNAL_SERVER_ERROR);
 	}
+	
+	@ApiOperation(value = "uploadFile", nickname = "uploadFile")
+	@RequestMapping(value = "/TBIconService/uploadFile", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "path", value = "the icon path that point to the icon", required = true, dataType = "string", paramType = "query"),
+		@ApiImplicitParam(name = "file", value = "the file to be uploaded", required = true, dataType = "__file")})
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Success", response = Boolean.class),
+			@ApiResponse(code = 400, message = "Bad Request", response = Boolean.class),
+			@ApiResponse(code = 500, message = "Failure", response = Boolean.class) })
+	public ResponseEntity<String> uploadFile(@QueryParam("path") String path, @RequestPart("file") MultipartFile file) {
+		
+		if (!path.startsWith("/")) {
+			path = "/" + path;
+		}
+		String fileName = fileStorageService.storeFile(path, file);
+		
+		return new ResponseEntity<String>(fileName, HttpStatus.OK);
+		
+	}
+	//public  uploadIcon(@QueryParam("path") String path, @QueryParam("size") String size) {
 	
 	private BufferedImage resizeImage(BufferedImage originalImage, int width, int height) {
 		BufferedImage resizedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
