@@ -55,7 +55,7 @@ public class IconSericeController implements ResourceProcessor<RepositoryLinksRe
 	}
 	
 	@ApiOperation(value = "getIcon", nickname = "getIcon")
-	@RequestMapping(value = "/TBIconService/getIcon", method = RequestMethod.POST)
+	@RequestMapping(value = "/TBIconService/getIcon", method = RequestMethod.GET)
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "path", value = "the icon path that point to the icon", required = true, dataType = "string", paramType = "query"),
 			@ApiImplicitParam(name = "size", value = "the size of the icon, if not defined it is 32x32 pixel", required = false, dataType = "string", paramType = "query")})
